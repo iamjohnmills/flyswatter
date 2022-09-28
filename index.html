@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <style media="screen">
+    @keyframes swat { 0% { background-position: -64px 0; } 50% { background-position: -128px 0; } }
+    @keyframes fly { 0% { background-position: 0 0; } 50% { background-position: -26px 0; } }
+    @keyframes gnat { 0% { background-position: -14px 0; } 50% { background-position: -28px 0; } }
+    @keyframes wasp { 0% { background-position: -96px 0; } 50% { background-position: -144px 0; } /* 25% { background-position: -96px 0; } */ /* 50% { background-position: -144px 0; } */ }
+    @keyframes bigfly { 0% { background-position: 0 0; } /* 25% { background-position: -64px 0; } */ 50% { background-position: -32px 0; } }
+    @keyframes zoomin { 0% { transform: scale(0) } 100% { transform: scale(1) } }
+    @keyframes swatted { 0% { transform: translateX(0) translateY(0) rotate(0deg); } 100% { transform: translateX(75vh) translateY(-25vh) rotate(360deg); } }
+    html,body { margin: 0; overflow: hidden; height: 100%; }
+    body, button { font-family: "Avenir", sans-serif; }
+    body { background: #fff;  font-weight: 500; cursor: none; }
+    body { background: url(background.png);}
+    #root { position: relative; height: 100%; display: flex; align-items: center; justify-content: center; flex-wrap: nowrap; }
+    .play { margin-top: -100px; animation: zoomin 0.3s ease-in-out; background: #fff; user-select: none; color: #1a1a1a; border: 0; outline: 4px solid #6a4aef; text-transform: uppercase; font-weight: bold; border-radius: 4px; padding: 15px 30px; font-size: 32px; }
+    .play.swatted { animation: swatted 0.3s ease-in-out; }
+    .cursor { z-index: 1; position: absolute; width: 64px; height: 160px; }
+    .cursor { image-rendering: pixelated; background: url(swatter.png); background-size: 300%; background-position: 0 0;}
+    .cursor.swat { animation: swat 0.12s linear; animation-timing-function: step-end; }
+    .bug { position: absolute; top: 100px;  }
+    .bug.dead { transition: top 0.3s linear; top: calc(100% + 10px) !important; animation: unset; }
+    .fly { width: 26px; height: 16px; animation: fly 0.1s infinite; animation-timing-function: step-end; image-rendering: pixelated; background: url(fly.png); background-position: 0 0;}
+    .gnat { width: 14px; height: 10px; animation: gnat 0.1s infinite; animation-timing-function: step-end; image-rendering: pixelated; background: url(gnat.png); background-position: 0 0;}
+    .wasp { width: 48px; height: 32px; animation: wasp 0.1s infinite; animation-timing-function: step-end; image-rendering: pixelated; background: url(wasp.png); background-position: 0 0;}
+    .bigfly { width: 32px; height: 30px; animation: bigfly 0.1s infinite; animation-timing-function: step-end; image-rendering: pixelated; background: url(bigfly.png); background-position: 0 0;}
+    </style>
+    <script type="text/javascript">
+
+    const createNode = (options) => {
+      const node = document.createElement(options.tag);
+      if(options.className) node.setAttribute('class',options.className);
+      if(options.innerHTML) node.innerHTML = options.innerHTML;
+      options.root.appendChild(node);
+      return node;
+    }
+
+    class UI {
+      constructor(){
+        document.addEventListener('DOMContentLoaded',this.init.bind(this));
+        document.addEventListener('mousemove',this.handleMouseMove.bind(this));
+        document.addEventListener('click',this.handleClick.bind(this));
+        this.audio_smack = new Audio('smack.mp3');
+        this.audio_punch = new Audio('punch.mp3');
+        this.root = null;
+        this.cursor_el = null;
+        this.play_el = null;
+        this.swat_timeout = null;
+        this.bugs = [];
+        this.fly_spawn = 10;
+        this.gnat_spawn = 5;
+        this.wasp_spawn = 2;
+        this.bigfly_spawn = 3;
+      }
+      init(){
+        this.width = window.innerWidth - 150;
+        this.height = window.innerHeight - 150;
+        this.root = document.getElementById('root');
+        this.cursor_el = createNode({ root: this.root, tag: 'div', className: 'cursor' });
+        this.play_el = createNode({ root: this.root, tag: 'button', className: 'play', innerHTML: 'Swat the flies' });
+        this.play_el.style.display = 'block';
+        this.spawnBugs();
+      }
+      spawnBugs(){
+        this.bugs = [];
+        for(let i = 0; i < this.fly_spawn; i++){
+          const fly = this.createBug({ className: 'bug fly', max_orbit: 80, min_orbit: 20  });
+          this.bugs.push(fly);
+        }
+        for(let i = 0; i < this.gnat_spawn; i++){
+          const gnat = this.createBug({ className:'bug gnat', max_orbit: 80, min_orbit: 20 });
+          this.bugs.push(gnat);
+        }
+        for(let i = 0; i < this.wasp_spawn; i++){
+          const wasp = this.createBug({ className:'bug wasp', max_orbit: 40, min_orbit: 20});
+          this.bugs.push(wasp);
+        }
+        for(let i = 0; i < this.bigfly_spawn; i++){
+          const bigfly = this.createBug({ className:'bug bigfly', max_orbit: 60, min_orbit: 20});
+          this.bugs.push(bigfly);
+        }
+      }
+      createBug(options){
+        const bug_el = createNode({ root: this.root, tag: 'div', className: options.className });
+        let x = Math.random() * this.width;
+        let y = Math.random() * this.height;
+        let x_direction = Math.random() < 0.5 ? 1 : -1;
+        let y_direction = Math.random() < 0.5 ? 1 : -1;
+        let x_speed = 0.25;
+        let y_speed = 0.25;
+        let angle_direction = Math.random() < 0.5 ? 1 : -1;
+        let angle = 0;
+        let angle_speed = Math.random() * 0.2 + 0.5 * angle_direction;
+        let size = Math.random() * (options.max_orbit - options.min_orbit) + options.min_orbit;
+        const degrees = [{sin: 180, cos: 160},{sin: 270, cos: 360},{sin: 180, cos: 360},{sin: 270, cos: 270},{sin: 360, cos: 360}];
+        const pattern = degrees[Math.floor(Math.random() * degrees.length)];
+        const bug_interval = setInterval(() => {
+          const left = size * Math.sin(angle * Math.PI/pattern.sin) + x;
+          const top = size * Math.cos(angle * Math.PI/pattern.cos) + y;
+          x = x + (x_direction * x_speed);
+          x_direction = x <= 0 && x_direction === -1 ? 1 : x >= this.width - 0 && x_direction === 1 ? -1 : x_direction;
+          y = y + (y_direction * y_speed);
+          y_direction = y <= 150 && y_direction === -1 ? 1 : y >= this.height -150 && y_direction === 1 ? -1 : x_direction;
+          angle += angle_speed;
+          x_speed = Math.random() * 0.05 + 0.2;
+          y_speed = Math.random() * 0.05 + 0.2;
+          bug_el.style.left = `${Math.floor(left)}px`;
+          bug_el.style.top = `${Math.floor(top)}px`;
+        },0);
+        return {
+          node: bug_el,
+          interval: bug_interval,
+        };
+      }
+      playSound(effect="smack"){
+        if(effect === 'smack'){
+          if(this.audio_smack.duration > 0 && !this.audio_smack.paused){
+            this.audio_smack.pause();
+            this.audio_smack.currentTime = 0;
+          }
+          this.audio_smack.play();
+        } else if(effect === 'punch'){
+          if(this.audio_punch.duration > 0 && !this.audio_punch.paused){
+            this.audio_punch.pause();
+            this.audio_punch.currentTime = 0;
+          }
+          this.audio_punch.play();
+        }
+      }
+      swat(){
+        if(this.swat_timeout) clearTimeout(this.swat_timeout);
+        this.cursor_el.classList.add('swat');
+        this.swat_timeout = setTimeout(() => { this.cursor_el.classList.remove('swat') },120)
+      }
+      hit(){
+        const dead = this.bugs.filter(bug => {
+          const rect = bug.node.getBoundingClientRect();
+          return rect.left > event.clientX && rect.right < event.clientX + 70 && rect.top > event.clientY && rect.bottom < event.clientY + 64;
+        });
+        this.bugs = this.bugs.filter(bug => !dead.includes(bug) );
+        dead.forEach(bug => {
+          this.playSound('punch');
+          clearInterval(bug.interval);
+          bug.node.classList.add('dead');
+          setTimeout(()=>{
+            bug.node.remove();
+          },300);
+        });
+        if(this.bugs.length === 0) this.done();
+      }
+      done(){
+        this.play_el.innerHTML = 'Play Again';
+      }
+      handleClick(event){
+        if(!this.cursor_el) return;
+        this.swat();
+        if(this.bugs.length) this.hit();
+        if(!this.bugs.length && this.play_el.style.display === 'none'){
+          this.play_el.style.display = 'block';
+        } else if(this.play_el.style.display === 'block') {
+          this.playSound('smack');
+          this.play_el.classList.add('swatted');
+          if(!this.bugs.length) this.spawnBugs();
+          setTimeout(()=>{
+            this.play_el.classList.remove('swatted');
+            this.play_el.style.display = 'none';
+          },250);
+        }
+      }
+      handleMouseMove(event){
+        if(!this.cursor_el) return;
+        this.cursor_el.style.left = `${event.clientX}px`;
+        this.cursor_el.style.top = `${event.clientY}px`;
+      }
+    }
+
+    const ui = new UI();
+
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
