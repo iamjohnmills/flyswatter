@@ -13,19 +13,19 @@
     @keyframes flick { 0% { transform: translateX(0) translateY(0) rotate(0deg); } 100% { transform: translateX(75vh) translateY(-25vh) rotate(360deg); } }
     html,body { margin: 0; overflow: hidden; height: 100%; }
     body, button { font-family: "Avenir", sans-serif; }
-    body { background: url(background.png); cursor: none; }
+    body { background: url(assets/background.png); cursor: none; }
     #root { position: relative; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; }
     .play { animation: zoomin 0.3s ease-in-out; background: #fff; user-select: none; color: #1a1a1a; border: 0; outline: 4px solid #6a4aef; text-transform: uppercase; font-weight: bold; border-radius: 4px; padding: 15px 30px; font-size: 32px; }
     .play.flick { animation: flick 0.3s ease-in-out; }
     .cursor { z-index: 1; position: absolute; width: 64px; height: 160px; }
-    .cursor { image-rendering: pixelated; background: url(swatter.png); background-size: 300%; background-position: 0 0;}
+    .cursor { image-rendering: pixelated; background: url(assets/swatter.png); background-size: 300%; background-position: 0 0;}
     .cursor.swat { animation: swat 0.12s linear; animation-timing-function: step-end; }
     .bug { position: absolute; top: 0; image-rendering: pixelated; background-position: 0 0; }
     .bug.dead { transition: top 0.3s linear; top: calc(100% + 10px) !important; animation: unset; }
-    .fly { width: 26px; height: 16px; animation: fly 0.1s infinite step-end; background: url(fly.png);  }
-    .gnat { width: 14px; height: 10px; animation: gnat 0.1s infinite step-end; background: url(gnat.png); }
-    .wasp { width: 48px; height: 32px; animation: wasp 0.1s infinite step-end; background: url(wasp.png); }
-    .bigfly { width: 32px; height: 30px; animation: bigfly 0.1s infinite step-end; background: url(bigfly.png); }
+    .fly { width: 26px; height: 16px; animation: fly 0.1s infinite step-end; background: url(assets/fly.png);  }
+    .gnat { width: 14px; height: 10px; animation: gnat 0.1s infinite step-end; background: url(assets/gnat.png); }
+    .wasp { width: 48px; height: 32px; animation: wasp 0.1s infinite step-end; background: url(assets/wasp.png); }
+    .bigfly { width: 32px; height: 30px; animation: bigfly 0.1s infinite step-end; background: url(assets/bigfly.png); }
     </style>
     <script type="text/javascript">
 
@@ -45,7 +45,7 @@
         document.addEventListener('touchmove',this.handleMouseMove.bind(this));
         document.addEventListener('mousemove',this.handleMouseMove.bind(this));
         document.addEventListener('click',this.handleClick.bind(this));
-        this.audio = { smack: new Audio('smack.mp3'), punch: new Audio('punch.mp3') }
+        this.audio = { smack: new Audio('assets/smack.mp3'), punch: new Audio('assets/punch.mp3') }
         this.new_game = true;
         this.root = null;
         this.cursor_el = null;
