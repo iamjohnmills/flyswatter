@@ -52,7 +52,7 @@
         this.play_el = null;
         this.swat_timeout = null;
         this.bugs = [];
-        this.bug_spawns = { fly: 10, gnat: 5, wasp: 2, bigfly: 3 }
+        this.bug_spawns = { fly: 15, gnat: 30, wasp: 5, bigfly: 3 }
       }
       init(){
         this.width = window.innerWidth - 150;
@@ -119,7 +119,9 @@
       hitBug(x,y){
         this.bugs.filter(bug => {
           const rect = bug.node.getBoundingClientRect();
-          return rect.left > event.clientX && rect.right < event.clientX + 70 && rect.top > event.clientY && rect.bottom < event.clientY + 64;
+          const bug_x = (rect.width / 2) + rect.left;
+          const bug_y = (rect.height / 2) + rect.top;
+          return bug_x > event.clientX && bug_x < event.clientX + 70 && bug_y > event.clientY && bug_y < event.clientY + 64;
         }).forEach((bug,i,bugs) => {
           this.playSound('punch');
           clearInterval(bug.interval);
