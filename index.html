@@ -98,7 +98,9 @@
           y = y + (y_direction * y_speed);
           y_direction = y <= 150 && y_direction === -1 ? 1 : y >= this.height -150 && y_direction === 1 ? -1 : x_direction;
           angle += angle_speed;
-          node.style.cssText = `left: ${Math.floor(left)}px; top: ${Math.floor(top)}px`
+          const pos_left = left > this.width ? this.width : left < 0 ? 0 : Math.floor(left);
+          const pos_top = top > this.height ? this.height : top < 0 ? 0 : Math.floor(top);
+          node.style.cssText = `left: ${pos_left}px; top: ${pos_top}px`
         },0);
         return {
           node: node,
