@@ -54,13 +54,30 @@
         this.bugs = [];
         this.bug_spawns = { fly: 15, gnat: 30, wasp: 5, bigfly: 3 }
       }
-      init(){
+      async init(){
         this.width = window.innerWidth - 150;
         this.height = window.innerHeight - 150;
         this.root = document.getElementById('root');
         this.cursor_el = createNode({ root: this.root, tag: 'div', className: 'cursor' });
         this.play_el = createNode({ root: this.root, tag: 'button', className: 'play', innerHTML: 'Swat The Flies', cssText: `display: block` });
-        this.spawnBugs();
+        await this.spawnBugs();
+        this.interval = window.requestAnimationFrame(this.render.bind(this));
+      }
+      render(){
+        this.bugs.forEach((bug, i) => {
+          const left = bug.size * Math.sin(bug.angle * Math.PI/bug.pattern.sin) + bug.x;
+          const top = bug.size * Math.cos(bug.angle * Math.PI/bug.pattern.cos) + bug.y;
+          bug.x = bug.x + (bug.x_direction * bug.x_speed);
+          bug.x_direction = bug.x <= 0 && bug.x_direction === -1 ? 1 : bug.x >= this.width - 0 && bug.x_direction === 1 ? -1 : bug.x_direction;
+          bug.y = bug.y + (bug.y_direction * bug.y_speed);
+          bug.y_direction = bug.y <= 150 && bug.y_direction === -1 ? 1 : bug.y >= this.height -150 && bug.y_direction === 1 ? -1 : bug.x_direction;
+          bug.angle += bug.angle_speed;
+          bug.angle_speed = Math.random() * 0.2 + 1 * bug.angle_direction;
+          const pos_left = left > this.width ? this.width : left < 0 ? 0 : Math.floor(left);
+          const pos_top = top > this.height ? this.height : top < 0 ? 0 : Math.floor(top);
+          bug.node.style.cssText = `left: ${pos_left}px; top: ${pos_top}px`
+        });
+        this.interval = window.requestAnimationFrame(this.render.bind(this));
       }
       getRandomBugType(){
         const types = Object.keys(this.bug_spawns);
@@ -78,34 +95,46 @@
       }
       createBug(options){
         const node = createNode({ root: this.root, tag: 'div', className: options.className });
-        let x = Math.random() * this.width;
-        let x_direction = Math.random() < 0.5 ? 1 : -1;
-        let x_speed = 0.25;
-        let y = Math.random() * this.height;
-        let y_direction = Math.random() < 0.5 ? 1 : -1;
-        let y_speed = 0.25;
-        let angle = 0;
-        let angle_direction = Math.random() < 0.5 ? 1 : -1;
-        let angle_speed = Math.random() * 0.2 + 0.5 * angle_direction;
-        let size = Math.random() * 60 + 20;
+        // let x = Math.random() * this.width;
+        // let x_direction = Math.random() < 0.5 ? 1 : -1;
+        // let x_speed = 0.25;
+        // let y = Math.random() * this.height;
+        // let y_direction = Math.random() < 0.5 ? 1 : -1;
+        // let y_speed = 0.25;
+        // let angle = 0;
+        // let angle_direction = Math.random() < 0.5 ? 1 : -1;
+        // let angle_speed = Math.random() * 0.2 + 0.5 * angle_direction;
+        // let size = Math.random() * 60 + 20;
         const degrees = [{sin: 180, cos: 160},{sin: 270, cos: 360},{sin: 180, cos: 360},{sin: 270, cos: 270},{sin: 360, cos: 360}];
-        const pattern = degrees[Math.floor(Math.random() * degrees.length)];
-        const interval = setInterval(() => {
-          const left = size * Math.sin(angle * Math.PI/pattern.sin) + x;
-          const top = size * Math.cos(angle * Math.PI/pattern.cos) + y;
-          x = x + (x_direction * x_speed);
-          x_direction = x <= 0 && x_direction === -1 ? 1 : x >= this.width - 0 && x_direction === 1 ? -1 : x_direction;
-          y = y + (y_direction * y_speed);
-          y_direction = y <= 150 && y_direction === -1 ? 1 : y >= this.height -150 && y_direction === 1 ? -1 : x_direction;
-          angle += angle_speed;
-          const pos_left = left > this.width ? this.width : left < 0 ? 0 : Math.floor(left);
-          const pos_top = top > this.height ? this.height : top < 0 ? 0 : Math.floor(top);
-          node.style.cssText = `left: ${pos_left}px; top: ${pos_top}px`
-        },0);
+        // const pattern = degrees[Math.floor(Math.random() * degrees.length)];
+        // const interval = setInterval(() => {
+        //   const left = size * Math.sin(angle * Math.PI/pattern.sin) + x;
+        //   const top = size * Math.cos(angle * Math.PI/pattern.cos) + y;
+        //   x = x + (x_direction * x_speed);
+        //   x_direction = x <= 0 && x_direction === -1 ? 1 : x >= this.width - 0 && x_direction === 1 ? -1 : x_direction;
+        //   y = y + (y_direction * y_speed);
+        //   y_direction = y <= 150 && y_direction === -1 ? 1 : y >= this.height -150 && y_direction === 1 ? -1 : x_direction;
+        //   angle += angle_speed;
+        //   const pos_left = left > this.width ? this.width : left < 0 ? 0 : Math.floor(left);
+        //   const pos_top = top > this.height ? this.height : top < 0 ? 0 : Math.floor(top);
+        //   node.style.cssText = `left: ${pos_left}px; top: ${pos_top}px`
+        // },0);
+        const angle_direction = Math.random() < 0.5 ? 1 : -1;
         return {
           node: node,
           type: options.type,
-          interval: interval,
+          x: Math.random() * this.width,
+          x_direction: Math.random() < 0.5 ? 1 : -1,
+          x_speed: 0.25,
+          y: Math.random() * this.height,
+          y_direction: Math.random() < 0.5 ? 1 : -1,
+          y_speed: 0.25,
+          angle: 0,
+          angle_direction: angle_direction,
+          angle_speed: Math.random() * 0.2 + 2 * angle_direction,
+          size: Math.random() * 60 + 20,
+          pattern: degrees[Math.floor(Math.random() * degrees.length)],
+          // interval: interval,
         };
       }
       async playSound(effect="smack"){
