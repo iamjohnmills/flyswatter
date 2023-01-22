@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
   <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
     <title>FlySwatter</title>
     <style media="screen">
@@ -157,7 +158,9 @@
         else this.hitBug(event.clientX,event.clientY);
       }
       handleMouseMove(event){
-        this.cursor_el.style.cssText = `left: ${event.clientX}px; top: ${event.clientY}px`;
+        let x = !!event.touches ? event.touches[0].clientX : event.clientX;
+        let y = !!event.touches ? event.touches[0].clientY : event.clientY;
+        this.cursor_el.style.cssText = `left: ${x}px; top: ${y}px`;
       }
     }
 
